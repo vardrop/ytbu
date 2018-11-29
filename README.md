@@ -1,5 +1,4 @@
-# ytbu
-#### Automatically backup your youtube subscription's videos.
+## ytbu - Automatically backup your youtube subscription's videos.
 Supports webhook notifications for OAuth token refresh. Main code in bash, API retrived with python, downloads with [youtube-dl](https://github.com/rg3/youtube-dl).
 
 ### Setup:
