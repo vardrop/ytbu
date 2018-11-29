@@ -28,7 +28,8 @@ ownid="UCRUULstZRWS1lDvJBzHnkXA"
 # You have now downloaded your file. Rename it to client_secret.json and move it in to the working directory.
 #
 # To install everything, run:
-# $ sudo apt install #########################################3
+# $ sudo apt update && sudo apt install python3 python3-pip && sudo pip3 install --upgrade youtube_dl google-api-python-client google-auth google-auth-oauthlib google-auth-httplib2
+# ^ Let me know if I missed anything (I'm pretty sure I did, haven't tested it)!
 #
 # Please run this and ensure no errors occur.
 # $ /usr/bin/python3 --version && /usr/bin/rclone --version && /usr/bin/youtube-dl --version
