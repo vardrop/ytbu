@@ -12,7 +12,7 @@ LOCKFILE="/var/lock/`basename $0`"
 ####################################################################################################
 #
 # SET YOUR WORKING DIRECTORY make sure you don't have a slash after the last directory!, insert full path to ensure cron finds it! Insert between double quotes. Make sure the directory exists, this directory is the root of the github directory.
-wdir="/home/pyptq/realdeal/ytbu"
+wdir="/home/pyptq/.ytbu"
 #
 # SET OWN YOUTUBE CHANNEL ID BELOW Go to youtube, my channel, get it from url https://www.youtube.com/channel/###OWNID###?view_as=subscriber Insert between double quotes. ID usually begins with UC
 ownid="UCRUULstZRWS1lDvJBzHnkXA"
