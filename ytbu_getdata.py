@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 ####################################################################################################
 #
-# Your working dir (absolute, ending with slash, inside double quotes)
-wdir = "/home/user/.ytbu"
+# Your working dir (absolute, ending with slash, inside double quotes), usually the directory you git cloned the 2 files in to
+wdir = "/home/pyptq/.ytbu"
 #
 # Do you want webhook notifier on? (When the OAuth token needs to be refreshed by you) (inside double quotes)
 webhooky = "false"
@@ -17,7 +17,6 @@ webhook_url = ""
 
 import os
 import google.oauth2.credentials
-
 import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
@@ -124,9 +123,9 @@ if __name__ == '__main__':
   os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
   client = get_authenticated_service()
   #Check if it's ran multiple times and get the nextPageToken
-  nextpager = os.path.join(wdir, 'nextpager.py')
+  nextpager = os.path.join(wdir, 'ytbu_nextpager.py')
   if os.path.isfile(nextpager):
-    from nextpager import *
+    from ytbu_nextpager import *
     #Multiple times ran.
     #Get new data
     subscriptions_list_my_subscriptions(client,
