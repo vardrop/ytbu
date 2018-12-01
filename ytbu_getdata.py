@@ -125,7 +125,7 @@ if __name__ == '__main__':
   client = get_authenticated_service()
   #Check if it's ran multiple times and get the nextPageToken
   nextpager = os.path.join(wdir, 'nextpager.py')
-  if nextpager.is_file():
+  if os.path.isfile(nextpager):
     from nextpager import *
     #Multiple times ran.
     #Get new data
