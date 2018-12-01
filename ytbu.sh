@@ -12,9 +12,9 @@ LOCKFILE="/var/lock/`basename $0`"
 ####################################################################################################
 #
 # SET YOUR WORKING DIRECTORY make sure you don't have a slash after the last directory!, insert full path to ensure cron finds it! Insert between double quotes. Make sure the directory exists, this directory is the root of the github directory.
-wdir="/home/user/.ytbu"
+wdir="/home/pyptq/realdeal/ytbu"
 #
-# SET OWN YOUTUBE CHANNEL ID BELOW Go to youtube, my channel, get it from url https://www.youtube.com/channel/###OWNID###?view_as=subscriber Insert between double quotes.
+# SET OWN YOUTUBE CHANNEL ID BELOW Go to youtube, my channel, get it from url https://www.youtube.com/channel/###OWNID###?view_as=subscriber Insert between double quotes. ID usually begins with UC
 ownid="UCRUULstZRWS1lDvJBzHnkXA"
 #
 # To retrive your client_secret.json open: https://console.developers.google.com/apis/credentials?project=_
@@ -62,7 +62,13 @@ ydl="/usr/bin/youtube-dl"
 #
 # If you still can't get it working, it's probably the program's or your system's fault.
 #
+# 
 #
+# If you want to edit how youtube-dl downloads, edit below.
+ytbu_downloadfiles () {
+$ydl --download-archive $wdir/ytbu_downloaded.txt -i -o "$wdir/ytbu_downloaded/%(uploader)s/%(upload_date)s-%(id)s.%(ext)s" -f bestvideo+bestaudio --batch-file $wdir/ytbu_channels.txt
+echo all downloaded
+}
 #
 # Choose what to do with downloaded files:
 ytbu_sendfiles () {
@@ -71,6 +77,7 @@ ytbu_sendfiles () {
       #mv $wdir/dowloaded/* /your/destination
     #If you want to move the files offsite, uncomment the line below, change the remote's name, path and add an rclone.config to your working directory.
       #rcl $wdir/downloaded/ remote: --config $wdir/rclone.config
+echo ytbu run finished
 }
 #
 #
@@ -80,41 +87,31 @@ ytbu_sendfiles () {
 # Just to make sure, go to working directory
 cd $wdir
 # remove leftovers from previous run, prepare
+echo ignore errors about file doesn not exist
 rm $wdir/ytbu_nextpager.py
 rm $wdir/ytbu_channels_old.txt
-mv /home/pyptq/.ytbu/ytbu_channels.txt $wdir/ytbu_channels_old.txt
+mv $wdir/ytbu_channels.txt $wdir/ytbu_channels_old.txt
 #get data from google
 $py3 $wdir/ytbu_getdata.py --noauth_local_webserver | tee $wdir/ytbu_data.txt
 #filter out channel ids from data, append youtube url in front of every id, for youtube-dl, remove your own channelIds
-cat $wdir/data.txt | grep -o "'channelId': '[a-zA-Z0-9_-]*" | sed "s#^.*'#https://www.youtube.com/channel/#" | grep -v $ownid | tee $wdir/ytbu_channels.txt
+cat $wdir/ytbu_data.txt | grep -o "'channelId': '[a-zA-Z0-9_-]*" | sed "s#^.*'#https://www.youtube.com/channel/#" | grep -v $ownid | tee $wdir/ytbu_channels.txt
 #filter out nextpage (api can get only 50 channels at once)
-checknextempty=""
-checknextempty=$(cat $wdir/data.txt | grep -o "'nextPageToken': '[a-zA-Z0-9_-]*" | sed "s#^.*'##" )
+checknextempty=$(cat $wdir/ytbu_data.txt | grep -o "'nextPageToken': '[a-zA-Z0-9_-]*" | sed "s#^.*'##" )
 #if more than 2 pages, loop
 while ! [ "$checknextempty" = "" ]; do
 # Get ready for python injection, needs to be in the format of nextpagevar= 'pageid'
-# add the format before pageid
-echo "nextpagevar= '" > $wdir/ytbu_tmpnxpage.txt
-#get pageid and append it to the part before
-cat $wdir/data.txt | grep -o "'nextPageToken': '[a-zA-Z0-9_-]*" | sed "s#^.*'##" >> $wdir/ytbu_tmpnxpage.txt
-#add the single quote after pageid
-echo \' >> $wdir/ytbu_tmpnxpage.py
-#remove line break between pageid and the part before and the line break between pageid and the single quote after
-tr --delete '\n' < $wdir/ytbu_tmpnxpage.txt > $wdir/ytbu_nextpager.py
-#cleanup
-rm $wdir/ytbu_tmpnxpage.txt
+cat $wdir/ytbu_data.txt | grep -o "'nextPageToken': '[a-zA-Z0-9_-]*" | sed "s#^.*'##" | sed -e "s@^@nextpagevar='@" -e "s@\$@'@" | tee $wdir/ytbu_nextpager.py
 # get the next page of data
 $py3 $wdir/ytbu_getdata.py --noauth_local_webserver | tee $wdir/ytbu_data.txt
 #filter new data and append to the channel list
-cat $wdir/data.txt | grep -o "'channelId': '[a-zA-Z0-9_-]*" | sed "s#^.*'#https://www.youtube.com/channel/#" | grep -v $ownid >> $wdir/ytbu_channels.txt
+cat $wdir/ytbu_data.txt | grep -o "'channelId': '[a-zA-Z0-9_-]*" | sed "s#^.*'#https://www.youtube.com/channel/#" | grep -v $ownid >> $wdir/ytbu_channels.txt
 # Check if there is any more pages (checks if there is a token for next page)
-checknextempty=""
-checknextempty=$(cat data.txt | grep -o "'nextPageToken': '[a-zA-Z0-9_-]*" | sed "s#^.*'##" )
+checknextempty=$(cat $wdir/ytbu_data.txt | grep -o "'nextPageToken': '[a-zA-Z0-9_-]*" | sed "s#^.*'##" )
 # Loop if there is more
 done
 #Finished retriveing Channels from your channel.
 #Download everything new
-$ydl --download-archive $wdir/ytbu_downloaded.txt -i -o "$wdir/ytbu_downloaded/%(uploader)s/%(upload_date)s-%(id)s.%(ext)s" -f bestvideo[ext=mp4]+bestaudio --batch-file $wdir/ytbu_channels.txt
+ytbu_downloadfiles
 # Transfer files: call a function
 ytbu_sendfiles
 # Unlock the file so this script could be run again.
