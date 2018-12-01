@@ -2,7 +2,7 @@
 ####################################################################################################
 #
 # Your working dir (absolute, ending with slash, inside double quotes), usually the directory you git cloned the 2 files in to
-wdir = "/home/pyptq/.ytbu"
+wdir = "/home/pyptq/.ytbu/"
 #
 # Do you want webhook notifier on? (When the OAuth token needs to be refreshed by you) (inside double quotes)
 webhooky = "false"
