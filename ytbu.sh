@@ -87,7 +87,7 @@ echo ytbu run finished
 # Just to make sure, go to working directory
 cd $wdir
 # remove leftovers from previous run, prepare
-echo ignore errors about file doesn not exist
+echo ignore errors about file doesn not exist on first run
 rm $wdir/ytbu_nextpager.py
 rm $wdir/ytbu_channels_old.txt
 mv $wdir/ytbu_channels.txt $wdir/ytbu_channels_old.txt
