@@ -2,7 +2,7 @@
 Supports webhook notifications for OAuth token refresh. Main code in bash, API retrived with python, downloads with [youtube-dl](https://github.com/rg3/youtube-dl).
 
 ### Setup:
-ytbu is meant to run on linux, with [crontab](https://www.ostechnix.com/a-beginners-guide-to-cron-jobs/). ([timing guide](https://crontab.guru/))
+ytbu is meant to be run on linux, with [crontab](https://www.ostechnix.com/a-beginners-guide-to-cron-jobs/). ([timing guide](https://crontab.guru/))
 Cron should execute [ytbu.sh](ytbu.sh)
 
 See [ytbu.sh](ytbu.sh) for more instructions and for the main config.
