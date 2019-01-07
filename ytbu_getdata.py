@@ -12,7 +12,7 @@ webhooky = "false"
 # What's your webhook url? (inside double quotes)
 webhook_url = ""
 #
-# NOTE! If the token needs to be refreshed/created, you will need to run the python script from the local terminal: python3 ytbu_getdata.py --noauth_local_webserver
+# NOTE! If the token neeads to be refreshed/created, you will need to run the python script from the local terminal: python3 ytbu_getdata.py --noauth_local_webserver
 # If this is run by cron (no way to input any data to it), kill ytbu: https://askubuntu.com/a/314292
 #
 ####################################################################################################

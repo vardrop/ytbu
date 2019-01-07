@@ -1,5 +1,4 @@
 #!/bin/bash
-#note I use a lot of functions since I can fold and move them around easily
 ##############################LOCK FILE############################## https://stackoverflow.com/a/25243837/7157385
 SCRIPTNAME=$(basename $0)
 LOCKDIR="/var/lock/${SCRIPTNAME}"
@@ -55,7 +54,7 @@ test_sudo() {
     echo "ERR: You need root to install dependencies!"
     ytbu_err
   fi
-}
+} # id.ee
 ytbu_install() {
   test_sudo #check for sudo (code from id.ee)
   sudo apt update
@@ -73,7 +72,7 @@ datamonster () {
 #get subscriptions from google, using python version as it was the fastest (and only) I could get working with the API
 $py3 $wdir/ytbu_getdata.py --noauth_local_webserver | tee $wdir/.ytbu_tmp_data.txt
 #filter newest data and append to the channel list
-cat $wdir/.ytbu_tmp_data.txt | grep -o "'channelId': '[a-zA-Z0-9_-]*" | sed "s#^.*'#https://www.youtube.com/channel/#" | grep -v $ownid >> $wdir/ytbu_channels.txt
+cat $wdir/.ytbu_tmp_data.txt | grep -o "'channelId': '[a-zA-Z0-9_-]*" | sed "s#^.*'#https://www.youtube.com/channel/#" | grep -v $ownid >> $wdir/.ytbu_channels.txt
 # Check if there is any more pages (checks if there is a token for next page) (api can get only 50 subscriptions once)
 checknextempty=$(cat $wdir/.ytbu_tmp_data.txt | grep -o "'nextPageToken': '[a-zA-Z0-9_-]*" | sed "s#^.*'##" )
 }
@@ -212,18 +211,39 @@ ytbu_config_installcheck(){
     fi
   done
 }
+ytbu_config_nodes(){
+  reader=1
+  while [[ $reader == 1 ]]; do
+    read -p "Use multiple nodes(computers)? " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+      nodes=1
+      reader=0
+    elif [[ $REPLY =~ ^[Yy]$ ]]; then
+      nodes=0
+      reader=0
+    else
+      echo What?
+      reader=1
+    fi
+  done
+}
 ytbu_configure(){ #run functions and save the final config
-
-
   ytbu_config_installcheck
   ytbu_config_wdir
   ytbu_config_webhooky
-  echo $wdir $webhooky_oauth $webhooky_complete $webhooky_token
+  ytbu_config_nodes
+  echo wdir="$wdir" > $wdir/.ytbu.cfg #save config to config file
+  echo py3="$py3" >> $wdir/.ytbu.cfg
+  echo ydl="$ydl" >> $wdir/.ytbu.cfg
+  echo webhooky_oauth="$webhooky_oauth" >> $wdir/.ytbu.cfg
+  echo webhooky_complete="$webhooky_complete" >> $wdir/.ytbu.cfg
+  echo webhooky_token="$webhooky_token" >> $wdir/.ytbu.cfg
+  echo nodes="$nodes" >> $wdir/.ytbu.cfg
   echo "Configuration complete!"
 }
 
-##############################CHECK ARGUMENTS##############################
-# check if any arguments were passed
+############################## ARGUMENTS / MENU ##############################
 ytbu_main_args(){
   if [ "$1" = "" ]; then
     ytbu_main
@@ -250,20 +270,36 @@ ytbu_main_args(){
   fi
 }
 ytbu_main_args #folding is great
-##MAIN##
-ytbu_main(){
-if [ ! -f ./ytbu.cfg ]; then
+############################## MAIN ##############################
+ytbu_channelfetch(){
+if [ ! -f ./ytbu.cfg ]; then #check if there is any configuration
   echo ERR: No configuration set!
   ytbu_err
+else
+  :
 fi
-source ./ytbu.cfg # Read aliases from file
+source ./ytbu.cfg # Read configuration
 cd $wdir #incase if all else fails
-if [ ! -f $wdir/client_secret.json ]; then
+if [ ! -f $wdir/client_secret.json ]; then # check if it exists
+  ytbu_secret
   echo ERR: No client_secret.json found!
   ytbu_err
+else
+  :
 fi
-rm -f $wdir/.ytbu_tmp_nextpager.py $wdir/ytbu_channels.txt # clean up from previous run
+rm -f $wdir/.ytbu_tmp_nextpager.py $wdir/.ytbu_channels.txt # clean up from previous run
 ytbu_channelsget # Get a list of channels
+}
+ytbu_prenode(){
+  $ydl -j --flat-playlist --batch-file $wdir/.ytbu_channels.txt --download-archive $wdir/ytbu_downloaded.txt | jq -r '.id' | sed 's_^_https://youtu.be/_' > $wdir/ytbu_master/ytbu_master_new.txt
+}
+ytbu_nodes(){
+
+  if [[ "$nodes" == 1 ]]; then #check for multinodeing
+    echo y
+  else
+    echo n
+  fi
 }
 
 
@@ -272,7 +308,7 @@ ytbu_channelsget # Get a list of channels
 
 #OLD stuff below
 ytbu_downloadfiles () {
-$ydl --download-archive $wdir/ytbu_downloaded.txt -i -o "$wdir/ytbu_downloaded/%(uploader)s/%(upload_date)s-%(id)s.%(ext)s" -f bestvideo+bestaudio --batch-file $wdir/ytbu_channels.txt
+$ydl --download-archive $wdir/ytbu_downloaded.txt -i -o "$wdir/ytbu_downloaded/%(uploader)s/%(upload_date)s-%(id)s.%(ext)s" -f bestvideo+bestaudio --batch-file $wdir/.ytbu_channels.txt
 echo all downloaded
 }
 #
@@ -296,7 +332,7 @@ then
 #Cleanup previous run files
 rm -f $wdir/ytbu_master_new.txt $wdir/ytbu_node_*_new.txt
 # Make a list of videos that need to be downloaded
-$ydl -j --flat-playlist --batch-file $wdir/ytbu_channels.txt --download-archive $wdir/ytbu_downloaded.txt | jq -r '.id' | sed 's_^_https://youtu.be/_' > $wdir/ytbu_master/ytbu_master_new.txt
+$ydl -j --flat-playlist --batch-file $wdir/.ytbu_channels.txt --download-archive $wdir/ytbu_downloaded.txt | jq -r '.id' | sed 's_^_https://youtu.be/_' > $wdir/ytbu_master/ytbu_master_new.txt
 elif [ $node = 0 ]
 then
 echo slave
