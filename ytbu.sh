@@ -271,6 +271,9 @@ ytbu_main_args(){
 }
 ytbu_main_args #folding is great
 ############################## MAIN ##############################
+ytbu_main(){
+  echo welcome to the empty main
+}
 ytbu_channelfetch(){
 if [ ! -f ./ytbu.cfg ]; then #check if there is any configuration
   echo ERR: No configuration set!
@@ -290,57 +293,67 @@ fi
 rm -f $wdir/.ytbu_tmp_nextpager.py $wdir/.ytbu_channels.txt # clean up from previous run
 ytbu_channelsget # Get a list of channels
 }
-ytbu_prenode(){
-  $ydl -j --flat-playlist --batch-file $wdir/.ytbu_channels.txt --download-archive $wdir/ytbu_downloaded.txt | jq -r '.id' | sed 's_^_https://youtu.be/_' > $wdir/ytbu_master/ytbu_master_new.txt
+ytbu_getlist(){
+  #rm
+  $ydl -j --flat-playlist --batch-file $wdir/.ytbu_channels.txt --download-archive $wdir/ytbu_downloaded.txt | jq -r '.id' | sed 's_^_https://youtu.be/_' > $wdir/.ytbu_master.txt
 }
 ytbu_nodes(){
-
-  if [[ "$nodes" == 1 ]]; then #check for multinodeing
-    echo y
+  if [[ "$nodes" == 1 ]]; then #check for multinode
+    if [[ "$head" == 1 ]]; then #is this node the head?
+      echo Head of office in your service
+      wc -l $wdir/.ytbu_master.txt
+    else
+      echo Just a worker
+    fi
   else
-    echo n
+    echo lonely
   fi
 }
 
+ytbu_threads(){
 
+}
 
+ytbu_threadend(){
+
+}
 
 
 #OLD stuff below
-ytbu_downloadfiles () {
-$ydl --download-archive $wdir/ytbu_downloaded.txt -i -o "$wdir/ytbu_downloaded/%(uploader)s/%(upload_date)s-%(id)s.%(ext)s" -f bestvideo+bestaudio --batch-file $wdir/.ytbu_channels.txt
-echo all downloaded
-}
+#ytbu_downloadfiles () {
+#$ydl --download-archive $wdir/ytbu_downloaded.txt -i -o "$wdir/ytbu_downloaded/%(uploader)s/%(upload_date)s-%(id)s.%(ext)s" -f bestvideo+bestaudio --batch-file $wdir/.ytbu_channels.txt
+#echo all downloaded
+#}
+##
+## Choose what to do with downloaded files:
+#ytbu_sendfiles () {
+#    #If you want to do nothing to the files and leave them in the working directory, do nothing.
+#    #If you want to move the files locally to somewhere else, change the destination and uncomment the line below.
+#      #mv $wdir/dowloaded/* /your/destination
+#    #If you want to move the files offsite, uncomment the line below, change the remote's name, path and add an rclone.config to your working directory.
+#      #rcl $wdir/downloaded/ remote: --config $wdir/rclone.config
+#echo ytbu run finished
+#}
+##
+##
+##End of config area
+###############################MAIN SCRIPT##############################
 #
-# Choose what to do with downloaded files:
-ytbu_sendfiles () {
-    #If you want to do nothing to the files and leave them in the working directory, do nothing.
-    #If you want to move the files locally to somewhere else, change the destination and uncomment the line below.
-      #mv $wdir/dowloaded/* /your/destination
-    #If you want to move the files offsite, uncomment the line below, change the remote's name, path and add an rclone.config to your working directory.
-      #rcl $wdir/downloaded/ remote: --config $wdir/rclone.config
-echo ytbu run finished
-}
-#
-#
-#End of config area
-##############################MAIN SCRIPT##############################
-
-# Chek if this machine is the primary node
-if [ $node = 1 ]
-then
-#Cleanup previous run files
-rm -f $wdir/ytbu_master_new.txt $wdir/ytbu_node_*_new.txt
-# Make a list of videos that need to be downloaded
-$ydl -j --flat-playlist --batch-file $wdir/.ytbu_channels.txt --download-archive $wdir/ytbu_downloaded.txt | jq -r '.id' | sed 's_^_https://youtu.be/_' > $wdir/ytbu_master/ytbu_master_new.txt
-elif [ $node = 0 ]
-then
-echo slave
-else
-echo ERROR: Check node value in ytbu.sh!
-exit 1
-fi
-#Download everything new
-ytbu_downloadfiles
-# Transfer files: call a function
-ytbu_sendfiles
+## Chek if this machine is the primary node
+#if [ $node = 1 ]
+#then
+##Cleanup previous run files
+#rm -f $wdir/ytbu_master_new.txt $wdir/ytbu_node_*_new.txt
+## Make a list of videos that need to be downloaded
+#$ydl -j --flat-playlist --batch-file $wdir/.ytbu_channels.txt --download-archive $wdir/ytbu_downloaded.txt | jq -r '.id' | sed 's_^_https://youtu.be/_' > $wdir/ytbu_master/ytbu_master_new.txt
+#elif [ $node = 0 ]
+#then
+#echo slave
+#else
+#echo ERROR: Check node value in ytbu.sh!
+#exit 1
+#fi
+##Download everything new
+#ytbu_downloadfiles
+## Transfer files: call a function
+#ytbu_sendfiles
