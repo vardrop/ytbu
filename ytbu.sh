@@ -91,59 +91,48 @@ done # and loop if there is even more data
 }
 ytbu_config_wdir(){
   reader=1
-  while [[ $reader == 1 ]]; do
+  while [[ $reader -eq 1 ]]; do
     wdir=$PWD
     echo Current working directory is $wdir
-    read -p "Change it? " -n 1 -r
+    read -p "Change it? " -n 1 REPLY
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-      read -p "What do you want to change it to? (full directory path, DO NOT END WITH A SLASH!): " -r
+      read -p "What do you want to change it to? (full directory path, DO NOT END WITH A SLASH!): " REPLY
       wdir=$REPLY
       reader=0
-    elif [[ $REPLY =~ ^[Yy]$ ]]; then
-      reader=0
     else
-      echo What?
-      reader=1
+      reader=0
     fi
   done
 }
 ytbu_config_webhooky(){
   reader=1
-  while [[ $reader == 1 ]]; do
-    read -p "Use webhooks to notify: OAuth token expired ? " -n 1 -r
+  while [[ $reader -eq 1 ]]; do
+    read -r -p "Use webhooks to notify: OAuth token expired ? " -n 1 REPLY
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
       webhooky_oauth=1
       reader=0
-    elif [[ $REPLY =~ ^[Yy]$ ]]; then
-      webhooky_oauth=0
-      reader=0
     else
-      echo What?
-      reader=1
+      webhooky_oauth=1
+      reader=0
     fi
   done
   reader=1
-  while [[ $reader == 1 ]]; do
-    read -p "Use webhooks to notify: ytbu run completed ? " -n 1 -r
+  while [[ $reader -eq 1 ]]; do
+    read -r -p "Use webhooks to notify: ytbu run completed ? " -n 1 REPLY
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
       webhooky_complete=1
       reader=0
-    elif [[ $REPLY =~ ^[Yy]$ ]]; then
+    else
       webhooky_complete=0
       reader=0
-    else
-      echo What?
-      reader=1
     fi
   done
-  if [[ "$webhooky_oauth" = 1 ]] || [[ $webhooky_complete = 1 ]]; then #
-    read -p "Enter an url to make a post request to: " -r
+  if [[ "$webhooky_oauth" -eq 1 ]] || [[ $webhooky_complete -eq 1 ]]; then #
+    read -r -p "Enter an url to make a post request to: " REPLY
     webhooky_token=$REPLY
-  else
-    :
   fi
 }
 ytbu_config_installcheck(){
@@ -151,7 +140,7 @@ ytbu_config_installcheck(){
   py3="/usr/bin/python3"
   ydl="/usr/local/bin/youtube-dl"
   reader=1
-  while [[ $reader == 1 ]]; do
+  while [[ $reader -eq 1 ]]; do
     if $py3 --version; then #check if default works
       reader=0
     else
@@ -162,14 +151,14 @@ ytbu_config_installcheck(){
       echo
       echo If you see something with /bin/python, change the path to it:
       whereis python3 #look for python3
-      read -p "" -n 1 -r
+      read -r -p "" -n 1 REPLY
       echo
       replyz=$REPLY #changing reply, since it will be overwritten when changing path
       if [[ $replyz =~ ^[Rr]$ ]]; then
         :#retry
         readerz=1
       elif [[ $replyz =~ ^[Cc]$ ]]; then
-        read -p "full path to python3: " -r #change path
+        read -r -p "full path to python3: " REPLY #change path
         py3=$REPLY
         readerz=1
       elif [[ $replyz =~ ^[Xx]$ ]]; then
@@ -183,7 +172,7 @@ ytbu_config_installcheck(){
     fi
   done
   reader=1 #once again, but for youtube-dl instead of python3
-  while [[ $reader == 1 ]]; do
+  while [[ $reader -eq 1 ]]; do
     if $ydl --version; then
       reader=0
     else
@@ -194,14 +183,14 @@ ytbu_config_installcheck(){
       echo
       echo If you see something with /bin/youtube-dl, change the path to it:
       whereis youtube-dl
-      read -p "" -n 1 -r
+      read -r -p "" -n 1 REPLY
       echo
       replyz=$REPLY
       if [[ $replyz =~ ^[Rr]$ ]]; then
         :
         readerz=1
       elif [[ $replyz =~ ^[Cc]$ ]]; then
-        read -p "full path to youtube-dl: " -r
+        read -r -p "full path to youtube-dl: " REPLY
         py3=$REPLY
         readerz=1
       elif [[ $replyz =~ ^[Xx]$ ]]; then
@@ -217,18 +206,15 @@ ytbu_config_installcheck(){
 }
 ytbu_config_nodes(){
   reader=1
-  while [[ $reader == 1 ]]; do
-    read -p "Use multiple nodes(computers)? " -n 1 -r
+  while [[ $reader -eq 1 ]]; do
+    read -r -p "Use multiple nodes(computers)? " -n 1 REPLY
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
       nodes=1
       reader=0
-    elif [[ $REPLY =~ ^[Yy]$ ]]; then
+    else
       nodes=0
       reader=0
-    else
-      echo What?
-      reader=1
     fi
   done
 }
@@ -275,8 +261,8 @@ ytbu_getlist(){
   $ydl -j --flat-playlist --batch-file $wdir/.ytbu_channels.txt --download-archive $wdir/ytbu_downloaded.txt | jq -r '.id' | sed 's_^_https://youtu.be/_' > $wdir/.ytbu_master.txt
 }
 ytbu_nodes(){
-  if [[ "$nodes" == 1 ]]; then #check for multinode
-    if [[ "$head" == 1 ]]; then #is this node the head?
+  if [[ "$nodes" -eq 1 ]]; then #check for multinode
+    if [[ "$head" -eq 1 ]]; then #is this node the head?
       echo Head of office in your service
       wc -l $wdir/.ytbu_master.txt
     else
@@ -323,4 +309,4 @@ ytbu_mainargs(){
   fi
 }
 
-ytbu_mainargs "$1"
+ytbu_mainargs "$1"||""
