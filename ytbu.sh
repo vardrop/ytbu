@@ -1,4 +1,6 @@
 #!/bin/bash
+# saner programming env: these switches turn some bugs into errors
+set -o errexit -o pipefail -o noclobber -o nounset
 ##############################LOCK FILE############################## https://stackoverflow.com/a/25243837/7157385
 SCRIPTNAME=$(basename $0)
 LOCKDIR="/var/lock/${SCRIPTNAME}"
@@ -25,29 +27,31 @@ fi
 trap "rm -rf ${LOCKDIR}" QUIT INT TERM EXIT
 ##############################FUNCTIONS##############################
 ytbu_err() { # any error and help ends here
-  echo Normal usage: 'bash ytbu.sh'
-  echo Quickstart: 'sudo bash ytbu.sh go'
-  echo Only install dependencies: 'bash ytbu.sh install'
-  echo Only configure: 'bash ytbu.sh config'
-  echo Run normally: 'bash ytbu.sh'
-  echo Guide for retriving your client_secret.json: 'bash ytbu.sh secret'
-  echo "For more information about configuration see https://github.com/pyptq/ytbu"
+  printf '%s\n' \
+    "Normal usage: 'bash ytbu.sh'" \
+    "Quickstart: 'sudo bash ytbu.sh go'" \
+    "Only install dependencies: 'bash ytbu.sh install'" \
+    "Only configure: 'bash ytbu.sh config'" \
+    "Run normally: 'bash ytbu.sh'" \
+    "Guide for retriving your client_secret.json: 'bash ytbu.sh secret'" \
+    "For more information about configuration see https://github.com/pyptq/ytbu"
   exit 1
 }
 ytbu_secret() { # just a guide for setup
-  echo To retrive your client_secret.json open:
-  echo https://console.developers.google.com/apis/credentials?project=_
-  echo If you don't have one, create a project.
-  echo Under APIs enable Youtube Data APIv3.
-  echo Go to credentials page under APIs & Services.
-  echo Ensure, that at the top left your project is selected.
-  echo Click on 'OAuth consent screen' in the top bar, enter a name and at the bottom, click Save.
-  echo Again on the Credentials screen press 'Create credentials', 'OAuth client ID', 'Other'
-  echo Enter a name for the backup app, click 'Create'.
-  echo You will be presented with your client ID and your client secret. Close that.
-  echo Under 'OAuth 2.0 client IDs' you will find the client you just created.
-  echo On the far right there is a download button. Click that.
-  echo Rename the downloaded file to client_secret.json and move it to ytbu's working directory.
+  printf '%s\n' \
+    "To retrive your client_secret.json open:" \
+    "https://console.developers.google.com/apis/credentials?project=_" \
+    "If you don't have one, create a project." \
+    "Under APIs enable Youtube Data APIv3." \
+    "Go to credentials page under APIs & Services." \
+    "Ensure, that at the top left your project is selected." \
+    "Click on 'OAuth consent screen' in the top bar, enter a name and at the bottom, click Save." \
+    "Again on the Credentials screen press 'Create credentials', 'OAuth client ID', 'Other'" \
+    "Enter a name for the backup app, click 'Create'." \
+    "You will be presented with your client ID and your client secret. Close that." \
+    "Under 'OAuth 2.0 client IDs' you will find the client you just created." \
+    "On the far right there is a download button. Click that." \
+    "Rename the downloaded file to client_secret.json and move it to ytbu's working directory."
 }
 test_sudo() {
   if ! command -v sudo>/dev/null; then
@@ -243,55 +247,28 @@ ytbu_configure(){ #run functions and save the final config
   echo "Configuration complete!"
 }
 
-############################## ARGUMENTS / MENU ##############################
-ytbu_main_args(){
-  if [ "$1" = "" ]; then
-    ytbu_main
-  elif [ "$1" = "install" ]; then
-    ytbu_install
-    exit
-  elif [ "$1" = "go"]; then
-    ytbu_secret
-    ytbu_install
-    ytbu_configure
-    read -n1 -r -p "If you have your client_secret.json in the working directory, press any key to continue..." key
-    ytbu_main
-  elif [ "$1" = "configure" ]; then
-    ytbu_configure
-    exit
-  elif [ "$1" = "secret" ]; then
-    ytbu_secret
-    exit
-  elif [ "$1" = "help" ]; then
-    ytbu_err
-  else
-    echo ERR: Invalid argument!
-    ytbu_err
-  fi
-}
-ytbu_main_args #folding is great
 ############################## MAIN ##############################
 ytbu_main(){
   echo welcome to the empty main
 }
 ytbu_channelfetch(){
-if [ ! -f ./ytbu.cfg ]; then #check if there is any configuration
-  echo ERR: No configuration set!
-  ytbu_err
-else
-  :
-fi
-source ./ytbu.cfg # Read configuration
-cd $wdir #incase if all else fails
-if [ ! -f $wdir/client_secret.json ]; then # check if it exists
-  ytbu_secret
-  echo ERR: No client_secret.json found!
-  ytbu_err
-else
-  :
-fi
-rm -f $wdir/.ytbu_tmp_nextpager.py $wdir/.ytbu_channels.txt # clean up from previous run
-ytbu_channelsget # Get a list of channels
+  if [ ! -f ./ytbu.cfg ]; then #check if there is any configuration
+    echo ERR: No configuration set!
+    ytbu_err
+  else
+    :
+  fi
+  source ./ytbu.cfg # Read configuration
+  cd $wdir #incase if all else fails
+  if [ ! -f $wdir/client_secret.json ]; then # check if it exists
+    ytbu_secret
+    echo ERR: No client_secret.json found!
+    ytbu_err
+  else
+    :
+  fi
+  rm -f $wdir/.ytbu_tmp_nextpager.py $wdir/.ytbu_channels.txt # clean up from previous run
+  ytbu_channelsget # Get a list of channels
 }
 ytbu_getlist(){
   #rm
@@ -311,49 +288,39 @@ ytbu_nodes(){
 }
 
 ytbu_threads(){
-
+  echo "test"
 }
 
 ytbu_threadend(){
-
+  echo "test"
 }
 
 
-#OLD stuff below
-#ytbu_downloadfiles () {
-#$ydl --download-archive $wdir/ytbu_downloaded.txt -i -o "$wdir/ytbu_downloaded/%(uploader)s/%(upload_date)s-%(id)s.%(ext)s" -f bestvideo+bestaudio --batch-file $wdir/.ytbu_channels.txt
-#echo all downloaded
-#}
-##
-## Choose what to do with downloaded files:
-#ytbu_sendfiles () {
-#    #If you want to do nothing to the files and leave them in the working directory, do nothing.
-#    #If you want to move the files locally to somewhere else, change the destination and uncomment the line below.
-#      #mv $wdir/dowloaded/* /your/destination
-#    #If you want to move the files offsite, uncomment the line below, change the remote's name, path and add an rclone.config to your working directory.
-#      #rcl $wdir/downloaded/ remote: --config $wdir/rclone.config
-#echo ytbu run finished
-#}
-##
-##
-##End of config area
-###############################MAIN SCRIPT##############################
-#
-## Chek if this machine is the primary node
-#if [ $node = 1 ]
-#then
-##Cleanup previous run files
-#rm -f $wdir/ytbu_master_new.txt $wdir/ytbu_node_*_new.txt
-## Make a list of videos that need to be downloaded
-#$ydl -j --flat-playlist --batch-file $wdir/.ytbu_channels.txt --download-archive $wdir/ytbu_downloaded.txt | jq -r '.id' | sed 's_^_https://youtu.be/_' > $wdir/ytbu_master/ytbu_master_new.txt
-#elif [ $node = 0 ]
-#then
-#echo slave
-#else
-#echo ERROR: Check node value in ytbu.sh!
-#exit 1
-#fi
-##Download everything new
-#ytbu_downloadfiles
-## Transfer files: call a function
-#ytbu_sendfiles
+############################## ARGUMENTS / MENU ##############################
+ytbu_mainargs(){
+  if [ "$1" = "" ]; then
+    ytbu_main
+  elif [ "$1" = "install" ]; then
+    ytbu_install
+    exit
+  elif [ "$1" = "go" ]; then
+    ytbu_secret
+    ytbu_install
+    ytbu_configure
+    read -n1 -r -p "If you have your client_secret.json in the working directory, press any key to continue..." key
+    ytbu_main
+  elif [ "$1" = "configure" ]; then
+    ytbu_configure
+    exit
+  elif [ "$1" = "secret" ]; then
+    ytbu_secret
+    exit
+  elif [ "$1" = "help" ]; then
+    ytbu_err
+  else
+    echo ERR: Invalid argument!
+    ytbu_err
+  fi
+}
+
+ytbu_mainargs "$1"
